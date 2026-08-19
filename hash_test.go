@@ -27,3 +27,11 @@ func TestCalculateFileHash(t *testing.T) {
 		t.Errorf("Expected %s, got %s", expected, hash)
 	}
 }
+
+func TestCalculateFileHashMissingFile(t *testing.T) {
+	_, err := calculateFileHash("file-that-does-not-exist.txt")
+
+	if err == nil {
+		t.Fatal("Expected an error for missing file, but got nil")
+	}
+}
