@@ -1,177 +1,47 @@
 package main
 
 import (
-	"crypto/sha256"
-	"encoding/hex"
 	"fmt"
-	"net"
 	"os"
-	"strings"
-	"time"
 )
 
 func main() {
 	if len(os.Args) < 2 {
-		fmt.Println("Usage: sentinel <command>")
+		printUsage()
 		return
 	}
 
 	command := os.Args[1]
 
-	if command == "hash" {
-		if len(os.Args) < 3 {
-			fmt.Println("Usage: sentinel hash <filename>")
-			return
-		}
+	switch command {
+	case "hash":
+		handleHash(os.Args)
 
-		filename := os.Args[2]
+	case "baseline":
+		handleBaseline(os.Args)
 
-		data, err := os.ReadFile(filename)
-		if err != nil {
-			fmt.Println("Error reading file:", err)
-			return
-		}
+	case "check":
+		handleCheck(os.Args)
 
-		hash := sha256.Sum256(data)
+	case "dns":
+		handleDNS(os.Args)
 
-		fmt.Println("File:", filename)
-		fmt.Println("SHA-256:", hex.EncodeToString(hash[:]))
-		return
+	case "port":
+		handlePort(os.Args)
+
+	default:
+		fmt.Println("Unknown command:", command)
+		printUsage()
 	}
+}
 
-	if command == "baseline" {
-		if len(os.Args) < 3 {
-			fmt.Println("Usage: sentinel baseline <filename>")
-			return
-		}
-
-		filename := os.Args[2]
-
-		data, err := os.ReadFile(filename)
-		if err != nil {
-			fmt.Println("Error reading file:", err)
-			return
-		}
-
-		hash := sha256.Sum256(data)
-		hashString := hex.EncodeToString(hash[:])
-
-		baseline := filename + ":" + hashString
-
-		err = os.WriteFile(
-			"sentinel-baseline.txt",
-			[]byte(baseline),
-			0644,
-		)
-		if err != nil {
-			fmt.Println("Error saving baseline:", err)
-			return
-		}
-
-		fmt.Println("Baseline created for:", filename)
-		return
-	}
-
-	if command == "check" {
-		if len(os.Args) < 3 {
-			fmt.Println("Usage: sentinel check <filename>")
-			return
-		}
-
-		filename := os.Args[2]
-
-		baselineData, err := os.ReadFile("sentinel-baseline.txt")
-		if err != nil {
-			fmt.Println("Error reading baseline:", err)
-			return
-		}
-
-		parts := strings.SplitN(string(baselineData), ":", 2)
-
-		if len(parts) != 2 {
-			fmt.Println("Invalid baseline file")
-			return
-		}
-
-		savedFilename := parts[0]
-		savedHash := parts[1]
-
-		if savedFilename != filename {
-			fmt.Println("No baseline found for:", filename)
-			return
-		}
-
-		data, err := os.ReadFile(filename)
-		if err != nil {
-			fmt.Println("Error reading file:", err)
-			return
-		}
-
-		currentHash := sha256.Sum256(data)
-		currentHashString := hex.EncodeToString(currentHash[:])
-
-		if currentHashString == savedHash {
-			fmt.Println("File integrity verified:", filename)
-		} else {
-			fmt.Println("WARNING: File has been modified:", filename)
-		}
-
-		return
-	}
-
-	if command == "dns" {
-		if len(os.Args) < 3 {
-			fmt.Println("Usage: sentinel dns <domain>")
-			return
-		}
-
-		domain := os.Args[2]
-
-		ipAddresses, err := net.LookupHost(domain)
-		if err != nil {
-			fmt.Println("DNS lookup failed:", err)
-			return
-		}
-
-		fmt.Println("Domain:", domain)
-		fmt.Println("IP addresses:")
-
-		for _, ip := range ipAddresses {
-			fmt.Println("-", ip)
-		}
-
-		return
-	}
-
-	if command == "port" {
-		if len(os.Args) < 4 {
-			fmt.Println("Usage: sentinel port <host> <port>")
-			return
-		}
-
-		host := os.Args[2]
-		port := os.Args[3]
-
-		address := net.JoinHostPort(host, port)
-
-		fmt.Println("Checking:", address)
-
-		connection, err := net.DialTimeout(
-			"tcp",
-			address,
-			3*time.Second,
-		)
-
-		if err != nil {
-			fmt.Println("Status: CLOSED or unreachable")
-			return
-		}
-
-		connection.Close()
-
-		fmt.Println("Status: OPEN")
-		return
-	}
-
-	fmt.Println("Unknown command:", command)
+func printUsage() {
+	fmt.Println("Sentinel CLI")
+	fmt.Println()
+	fmt.Println("Usage:")
+	fmt.Println("  sentinel hash <filename>")
+	fmt.Println("  sentinel baseline <filename>")
+	fmt.Println("  sentinel check <filename>")
+	fmt.Println("  sentinel dns <domain>")
+	fmt.Println("  sentinel port <host> <port>")
 }
