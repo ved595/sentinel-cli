@@ -1,16 +1,18 @@
 # Sentinel CLI
 
-Sentinel CLI is a command-line cybersecurity tool built with Go.
+Sentinel CLI is a command-line cybersecurity and networking tool built with Go.
 
 The goal of this project is to explore fundamental cybersecurity and networking concepts by building practical security utilities from scratch.
 
 ## Current Features
 
-- Generate a SHA-256 hash for a file
-- Create a trusted SHA-256 baseline for a file
-- Verify whether a file still matches its trusted baseline
+- Generate SHA-256 hashes for files
+- Create trusted SHA-256 baselines for files
+- Verify file integrity against a saved baseline
 - Detect unexpected file modifications
-- Perform DNS lookups and display IP addresses associated with a domain
+- Perform DNS lookups
+- Display IPv4 and IPv6 addresses associated with a domain
+- Check whether a specific TCP port is open or unreachable
 
 ## Usage
 
@@ -112,6 +114,36 @@ IP addresses:
 
 Depending on the domain, Sentinel may return both IPv4 and IPv6 addresses.
 
+### TCP Port Check
+
+Check whether a specific TCP port on a host accepts a connection:
+
+```bash
+go run . port <host> <port>
+```
+
+Example:
+
+```bash
+go run . port example.com 443
+```
+
+Example output for an open port:
+
+```text
+Checking: example.com:443
+Status: OPEN
+```
+
+If Sentinel cannot establish the TCP connection within the timeout:
+
+```text
+Checking: example.com:81
+Status: CLOSED or unreachable
+```
+
+The port command checks one user-specified TCP port at a time.
+
 ## How It Works
 
 ### SHA-256 Hashing
@@ -139,13 +171,34 @@ DNS (Domain Name System) translates human-readable domain names into IP addresse
 
 When the `dns` command is run, Sentinel performs a DNS lookup for the supplied domain and displays the IP addresses returned by the lookup.
 
-## Planned Features
+### TCP Port Checking
 
-- TCP port checking
-- Improved command structure
-- Improved error handling
-- Automated tests
-- Additional networking utilities
+Network services listen for connections on numbered ports.
+
+For example, common ports include:
+
+- Port 22 — SSH
+- Port 80 — HTTP
+- Port 443 — HTTPS
+
+When the `port` command is run, Sentinel attempts to establish a TCP connection to the specified host and port.
+
+If the connection succeeds, Sentinel reports the port as open. If the connection fails or times out, Sentinel reports the port as closed or unreachable.
+
+A three-second connection timeout prevents Sentinel from waiting indefinitely for a response.
+
+## Responsible Use
+
+The networking features in Sentinel are intended for educational purposes, network troubleshooting, and testing systems you own or have permission to test.
+
+## Planned Improvements
+
+- Refactor commands into separate functions and files
+- Improve command-line argument validation
+- Improve error handling
+- Add automated tests
+- Improve generated baseline storage
+- Add additional networking utilities
 
 ## Technologies and Concepts
 
@@ -156,3 +209,6 @@ When the `dns` command is run, Sentinel performs a DNS lookup for the supplied d
 - File integrity monitoring
 - DNS
 - IPv4 and IPv6
+- TCP
+- Network ports
+- Connection timeouts
