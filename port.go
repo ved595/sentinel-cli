@@ -6,6 +6,24 @@ import (
 	"time"
 )
 
+func checkPort(host string, port string) bool {
+	address := net.JoinHostPort(host, port)
+
+	connection, err := net.DialTimeout(
+		"tcp",
+		address,
+		3*time.Second,
+	)
+
+	if err != nil {
+		return false
+	}
+
+	defer connection.Close()
+
+	return true
+}
+
 func handlePort(args []string) {
 	if len(args) < 4 {
 		fmt.Println("Usage: sentinel port <host> <port>")
@@ -15,22 +33,13 @@ func handlePort(args []string) {
 	host := args[2]
 	port := args[3]
 
-	address := net.JoinHostPort(host, port)
+	fmt.Println("Checking:", net.JoinHostPort(host, port))
 
-	fmt.Println("Checking:", address)
+	isOpen := checkPort(host, port)
 
-	connection, err := net.DialTimeout(
-		"tcp",
-		address,
-		3*time.Second,
-	)
-
-	if err != nil {
+	if isOpen {
+		fmt.Println("Status: OPEN")
+	} else {
 		fmt.Println("Status: CLOSED or unreachable")
-		return
 	}
-
-	defer connection.Close()
-
-	fmt.Println("Status: OPEN")
 }

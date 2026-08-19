@@ -5,6 +5,10 @@ import (
 	"net"
 )
 
+func lookupHost(domain string) ([]string, error) {
+	return net.LookupHost(domain)
+}
+
 func handleDNS(args []string) {
 	if len(args) < 3 {
 		fmt.Println("Usage: sentinel dns <domain>")
@@ -13,7 +17,7 @@ func handleDNS(args []string) {
 
 	domain := args[2]
 
-	ipAddresses, err := net.LookupHost(domain)
+	ipAddresses, err := lookupHost(domain)
 	if err != nil {
 		fmt.Println("DNS lookup failed:", err)
 		return
