@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"net"
+	"strings"
 )
 
 func lookupHost(domain string) ([]string, error) {
@@ -15,7 +16,12 @@ func handleDNS(args []string) {
 		return
 	}
 
-	domain := args[2]
+	domain := strings.TrimSpace(args[2])
+
+	if domain == "" {
+		fmt.Println("Error: domain cannot be empty")
+		return
+	}
 
 	ipAddresses, err := lookupHost(domain)
 	if err != nil {

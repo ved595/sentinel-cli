@@ -1,24 +1,14 @@
 # Sentinel CLI
 
-Sentinel CLI is a command-line cybersecurity and networking tool built with Go.
+Sentinel CLI is a command-line cybersecurity and networking toolkit built with Go.
 
-The goal of this project is to explore fundamental cybersecurity and networking concepts by building practical security utilities from scratch.
+The project explores fundamental cybersecurity concepts through practical utilities for file integrity monitoring, DNS resolution, and TCP connectivity testing.
 
-## Current Features
+## Features
 
-- Generate SHA-256 hashes for files
-- Create trusted SHA-256 baselines for files
-- Verify file integrity against a saved baseline
-- Detect unexpected file modifications
-- Perform DNS lookups
-- Display IPv4 and IPv6 addresses associated with a domain
-- Check whether a specific TCP port is open or unreachable
+### SHA-256 File Hashing
 
-## Usage
-
-### Generate a SHA-256 Hash
-
-Generate the SHA-256 hash of a file:
+Generate the SHA-256 hash of a file.
 
 ```bash
 go run . hash <filename>
@@ -30,16 +20,16 @@ Example:
 go run . hash test.txt
 ```
 
-Example output:
+Output:
 
 ```text
 File: test.txt
 SHA-256: <generated SHA-256 hash>
 ```
 
-### Create a File Integrity Baseline
+### File Integrity Baselines
 
-Save the current SHA-256 hash of a file as a trusted baseline:
+Create a trusted SHA-256 baseline for a file.
 
 ```bash
 go run . baseline <filename>
@@ -51,47 +41,39 @@ Example:
 go run . baseline test.txt
 ```
 
-Example output:
+Output:
 
 ```text
 Baseline created for: test.txt
 ```
 
-Sentinel stores the trusted hash in:
+Sentinel stores the trusted hash locally and can later compare the file against that baseline.
 
-```text
-sentinel-baseline.txt
-```
+### File Integrity Verification
 
-### Check File Integrity
-
-Compare a file against its saved baseline:
+Check whether a monitored file has changed:
 
 ```bash
 go run . check <filename>
 ```
 
-Example:
-
-```bash
-go run . check test.txt
-```
-
-If the file has not changed:
+If the file matches its baseline:
 
 ```text
 File integrity verified: test.txt
 ```
 
-If the file has been modified:
+If the contents have changed:
 
 ```text
 WARNING: File has been modified: test.txt
 ```
 
+This demonstrates the basic concept behind file integrity monitoring: detecting unexpected changes by comparing cryptographic hashes.
+
 ### DNS Lookup
 
-Look up the IP addresses associated with a domain:
+Resolve a domain name to its associated IP addresses:
 
 ```bash
 go run . dns <domain>
@@ -100,23 +82,23 @@ go run . dns <domain>
 Example:
 
 ```bash
-go run . dns google.com
+go run . dns example.com
 ```
 
 Example output:
 
 ```text
-Domain: google.com
+Domain: example.com
 IP addresses:
-- 142.250.xxx.xxx
-- 2607:f8b0:...
+- <IPv4 address>
+- <IPv6 address>
 ```
 
-Depending on the domain, Sentinel may return both IPv4 and IPv6 addresses.
+Results may contain both IPv4 and IPv6 addresses.
 
-### TCP Port Check
+### TCP Port Checking
 
-Check whether a specific TCP port on a host accepts a connection:
+Test whether a specific TCP port accepts a connection:
 
 ```bash
 go run . port <host> <port>
@@ -128,87 +110,129 @@ Example:
 go run . port example.com 443
 ```
 
-Example output for an open port:
+Example output:
 
 ```text
 Checking: example.com:443
 Status: OPEN
 ```
 
-If Sentinel cannot establish the TCP connection within the timeout:
+If Sentinel cannot establish a connection:
 
 ```text
-Checking: example.com:81
 Status: CLOSED or unreachable
 ```
 
-The port command checks one user-specified TCP port at a time.
+Port numbers are validated and must be between `1` and `65535`.
 
-## How It Works
+## CLI Commands
 
-### SHA-256 Hashing
+```text
+sentinel hash <filename>
+sentinel baseline <filename>
+sentinel check <filename>
+sentinel dns <domain>
+sentinel port <host> <port>
+```
 
-Sentinel reads the contents of a file and generates a SHA-256 hash.
+Running Sentinel without a command displays the available commands.
 
-A SHA-256 hash acts like a digital fingerprint. Even a small change to the contents of a file produces a different hash.
+## Project Structure
 
-### File Integrity Checking
+```text
+sentinel-cli/
+├── main.go
+├── hash.go
+├── integrity.go
+├── dns.go
+├── port.go
+├── hash_test.go
+├── integrity_test.go
+├── dns_test.go
+├── port_test.go
+├── go.mod
+├── .gitignore
+└── README.md
+```
 
-When a baseline is created, Sentinel calculates the file's SHA-256 hash and saves it as a trusted value.
+The project separates command handling from the underlying functionality so individual components can be tested independently.
 
-When the `check` command is run, Sentinel:
+## Automated Testing
 
-1. Reads the saved baseline.
-2. Calculates the file's current SHA-256 hash.
-3. Compares the current hash with the trusted hash.
-4. Reports whether the file has changed.
+Sentinel includes automated tests for its core functionality.
 
-This demonstrates the basic concept behind file integrity monitoring, which can be used to identify unexpected or unauthorized changes to files.
+Run the complete test suite with:
 
-### DNS Lookup
+```bash
+go test
+```
 
-DNS (Domain Name System) translates human-readable domain names into IP addresses that computers use to communicate across networks.
+The tests cover:
 
-When the `dns` command is run, Sentinel performs a DNS lookup for the supplied domain and displays the IP addresses returned by the lookup.
+- SHA-256 hash calculation
+- Missing-file error handling
+- File integrity verification
+- File modification detection
+- DNS resolution
+- TCP connection checking
 
-### TCP Port Checking
+Networking tests use local resources where possible so the test suite does not unnecessarily depend on external services.
 
-Network services listen for connections on numbered ports.
+## Building Sentinel
 
-For example, common ports include:
+Build the executable with:
 
-- Port 22 — SSH
-- Port 80 — HTTP
-- Port 443 — HTTPS
+```bash
+go build -o sentinel
+```
 
-When the `port` command is run, Sentinel attempts to establish a TCP connection to the specified host and port.
+Then run Sentinel directly:
 
-If the connection succeeds, Sentinel reports the port as open. If the connection fails or times out, Sentinel reports the port as closed or unreachable.
+```bash
+./sentinel
+```
 
-A three-second connection timeout prevents Sentinel from waiting indefinitely for a response.
+For example:
+
+```bash
+./sentinel dns example.com
+```
+
+or:
+
+```bash
+./sentinel port example.com 443
+```
+
+## Security Concepts Demonstrated
+
+This project demonstrates several foundational cybersecurity and networking concepts:
+
+- Cryptographic hashing with SHA-256
+- File integrity monitoring
+- Change detection
+- DNS resolution
+- IPv4 and IPv6
+- TCP connections
+- Network ports
+- Connection timeouts
+- Input validation
+- Error handling
+- Automated testing
 
 ## Responsible Use
 
-The networking features in Sentinel are intended for educational purposes, network troubleshooting, and testing systems you own or have permission to test.
+Sentinel's networking functionality is intended for education, network troubleshooting, and testing systems you own or have explicit permission to test.
 
-## Planned Improvements
-
-- Refactor commands into separate functions and files
-- Improve command-line argument validation
-- Improve error handling
-- Add automated tests
-- Improve generated baseline storage
-- Add additional networking utilities
-
-## Technologies and Concepts
+## Technologies
 
 - Go
 - Git
 - GitHub
-- SHA-256
-- File integrity monitoring
-- DNS
-- IPv4 and IPv6
-- TCP
-- Network ports
-- Connection timeouts
+- Go standard library
+
+## Project Status
+
+Sentinel CLI v1 is feature complete.
+
+Future versions may expand the toolkit with additional security and networking functionality.

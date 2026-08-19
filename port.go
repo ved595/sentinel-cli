@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"net"
+	"strconv"
 	"time"
 )
 
@@ -32,6 +33,22 @@ func handlePort(args []string) {
 
 	host := args[2]
 	port := args[3]
+
+	if host == "" {
+		fmt.Println("Error: host cannot be empty")
+		return
+	}
+
+	portNumber, err := strconv.Atoi(port)
+	if err != nil {
+		fmt.Println("Error: port must be a number")
+		return
+	}
+
+	if portNumber < 1 || portNumber > 65535 {
+		fmt.Println("Error: port must be between 1 and 65535")
+		return
+	}
 
 	fmt.Println("Checking:", net.JoinHostPort(host, port))
 
