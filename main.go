@@ -4,6 +4,7 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"fmt"
+	"net"
 	"os"
 	"strings"
 )
@@ -34,7 +35,6 @@ func main() {
 
 		fmt.Println("File:", filename)
 		fmt.Println("SHA-256:", hex.EncodeToString(hash[:]))
-
 		return
 	}
 
@@ -113,6 +113,30 @@ func main() {
 			fmt.Println("File integrity verified:", filename)
 		} else {
 			fmt.Println("WARNING: File has been modified:", filename)
+		}
+
+		return
+	}
+
+	if command == "dns" {
+		if len(os.Args) < 3 {
+			fmt.Println("Usage: sentinel dns <domain>")
+			return
+		}
+
+		domain := os.Args[2]
+
+		ipAddresses, err := net.LookupHost(domain)
+		if err != nil {
+			fmt.Println("DNS lookup failed:", err)
+			return
+		}
+
+		fmt.Println("Domain:", domain)
+		fmt.Println("IP addresses:")
+
+		for _, ip := range ipAddresses {
+			fmt.Println("-", ip)
 		}
 
 		return
