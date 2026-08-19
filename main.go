@@ -7,6 +7,7 @@ import (
 	"net"
 	"os"
 	"strings"
+	"time"
 )
 
 func main() {
@@ -139,6 +140,36 @@ func main() {
 			fmt.Println("-", ip)
 		}
 
+		return
+	}
+
+	if command == "port" {
+		if len(os.Args) < 4 {
+			fmt.Println("Usage: sentinel port <host> <port>")
+			return
+		}
+
+		host := os.Args[2]
+		port := os.Args[3]
+
+		address := net.JoinHostPort(host, port)
+
+		fmt.Println("Checking:", address)
+
+		connection, err := net.DialTimeout(
+			"tcp",
+			address,
+			3*time.Second,
+		)
+
+		if err != nil {
+			fmt.Println("Status: CLOSED or unreachable")
+			return
+		}
+
+		connection.Close()
+
+		fmt.Println("Status: OPEN")
 		return
 	}
 
